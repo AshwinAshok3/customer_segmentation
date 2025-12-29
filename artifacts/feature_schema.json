@@ -1,0 +1,16 @@
+{
+    "features": [
+        "Recency",
+        "Frequency",
+        "Monetary",
+        "TotalQuantity",
+        "UniqueProducts"
+    ],
+    "description": {
+        "Recency": "Days since last purchase",
+        "Frequency": "Number of invoices",
+        "Monetary": "Total spend",
+        "TotalQuantity": "Total items purchased",
+        "UniqueProducts": "Distinct products purchased"
+    }
+}
