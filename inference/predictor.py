@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-ARTIFACT_DIR = Path("../artifacts")
+BASE_DIR = Path(__file__).resolve().parent.parent
+ARTIFACT_DIR = BASE_DIR / "artifacts"
 
 scaler = joblib.load(ARTIFACT_DIR / "scaler.pkl")
 kmeans = joblib.load(ARTIFACT_DIR / "kmeans.pkl")
