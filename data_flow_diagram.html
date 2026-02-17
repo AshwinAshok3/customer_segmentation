@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Segmentation Data Flow Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --background-color: #f4f6f7;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        p {
+            max-width: 800px;
+            text-align: center;
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .diagram-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 95%;
+            max-width: 1200px;
+            overflow-x: auto;
+        }
+
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            justify_content: center;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🛍️ Customer Segmentation Data Flow</h1>
+    <p>
+        This diagram illustrates the complete data processing pipeline for the Customer Segmentation project.
+        It details how raw transaction data is transformed into actionable customer segments using K-Means clustering.
+    </p>
+
+    <div class="diagram-container">
+        <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#3498db', 'edgeLabelBackground':'#fff', 'tertiaryColor': '#fff'}}}%%
+flowchart TD
+    %% Define Styles
+    classDef input fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+    classDef process fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef distinct fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,stroke-dasharray: 5 5;
+    classDef storage fill:#fff,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5;
+
+    subgraph Inputs ["User Input"]
+        User((User)) -->|Upload CSV/Excel| File[Transaction File]
+        File:::input
+    end
+
+    subgraph Ingestion ["Data Ingestion (app.py)"]
+        File -->|load_customer_file| RawDF[Raw DataFrame]
+        RawDF:::storage
+    end
+
+    subgraph Processing ["Data Pipeline (pipeline & inference)"]
+        RawDF -->|clean_data| Clean[Data Cleaning]
+        Clean:::process
+        
+        Clean -->|Remove Missing IDs| CleanedDF[Cleaned DataFrame]
+        CleanedDF:::storage
+        
+        CleanedDF -->|build_rfm_features| FeatureEng[Feature Engineering]
+        FeatureEng:::process
+        
+        FeatureEng -->|Aggregation by CustomerID| Features[Customer Features]
+        Features:::storage
+        
+        Features -->|StandardScaler| Scaling[Feature Scaling]
+        Scaling:::process
+        
+        Scaling -->|Transform| ScaledX[Scaled Matrix X]
+        ScaledX:::storage
+        
+        ScaledX -->|KMeans.predict| Modeling[Clustering Model]
+        Modeling:::process
+
+        Modeling -->|Assign Cluster ID| Results[Results DataFrame]
+        Results:::storage
+    end
+
+    subgraph PostProcessing ["Business Logic (app.py)"]
+        Results -->|get_segment_labels| Labeling[Dynamic Labeling]
+        Labeling:::process
+
+        Labeling -->|Map Cluster Stats| Segments[Labeled Segments]
+        Segments:::distinct
+    end
+
+    subgraph Outputs ["Application Outputs"]
+        Segments -->|Visualize| Viz[Charts & Graphs]
+        Segments -->|Summarize| KPIs[Business Metrics]
+        Segments -->|Export| CSV[Download CSV]
+
+        Viz:::output
+        KPIs:::output
+        CSV:::output
+    end
+
+    %% Data Details
+    File -.->|Contains| Schema1[InvoiceNo, StockCode, Quantity, Price, CustomerID]
+    Features -.->|Contains| Schema2[Recency, Frequency, Monetary, TotalQuantity]
+    Segments -.->|Labels| Labels[Loyal, At-Risk, Recent, Bulk]
+
+    linkStyle default stroke:#333,stroke-width:1.5px;
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:#e1f5fe; border: 2px solid #0277bd"></span> Input Data</div>
+        <div class="legend-item"><span class="dot" style="background:#fff3e0; border: 2px solid #ef6c00"></span> Processing Step</div>
+        <div class="legend-item"><span class="dot" style="background:#fff; border: 2px solid #333; border-style: dashed"></span> Data Object</div>
+        <div class="legend-item"><span class="dot" style="background:#e8f5e9; border: 2px solid #2e7d32"></span> Final Output</div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
